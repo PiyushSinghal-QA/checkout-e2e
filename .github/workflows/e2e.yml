@@ -1,0 +1,32 @@
+name: E2E
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout test suite
+        uses: actions/checkout@v4
+      - name: Checkout app under test
+        uses: actions/checkout@v4
+        with:
+          repository: PiyushSinghal-QA/checkout-service
+          path: checkout-service
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install app deps
+        run: npm install --prefix checkout-service
+      - name: Install test deps
+        run: npm install
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E against the app
+        run: npm test
+        env:
+          APP_PATH: ./checkout-service
