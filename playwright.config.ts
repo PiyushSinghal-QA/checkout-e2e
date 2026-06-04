@@ -10,7 +10,11 @@ export default defineConfig({
   fullyParallel: false,
   forbidOnly: !!process.env.CI,
   retries: 0,
-  reporter: process.env.CI ? [['github'], ['list']] : [['list']],
+  reporter: [
+    ['list'],
+    ['./reporters/autofix-reporter.ts'], // pushes results to the AutoFix agent
+    ...(process.env.CI ? [['github'] as [string]] : []),
+  ],
   use: {
     baseURL: BASE_URL,
     trace: 'on-first-retry',
