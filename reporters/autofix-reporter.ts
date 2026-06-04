@@ -1,4 +1,5 @@
 import type { Reporter, TestCase, TestResult } from '@playwright/test/reporter';
+import { execSync } from 'node:child_process';
 
 /**
  * Pushes this run's results to the AutoFix agent so it can analyse + triage them.
@@ -21,9 +22,17 @@ export default class AutofixReporter implements Reporter {
 
   async onEnd(): Promise<void> {
     const url = process.env.AUTOFIX_URL || 'http://localhost:4000/webhooks/e2e';
+    let branch = 'unknown';
+    try {
+      branch = execSync('git rev-parse --abbrev-ref HEAD', {
+        cwd: process.env.APP_PATH || '../checkout-service',
+        encoding: 'utf8',
+      }).trim();
+    } catch { /* app dir isn't a git checkout */ }
     const payload = {
       repository: 'checkout-service',
       suite: 'checkout-e2e',
+      branch,
       failures: [...this.failures],
       stats: { passed: this.passed, failed: this.failed, total: this.passed + this.failed },
     };
